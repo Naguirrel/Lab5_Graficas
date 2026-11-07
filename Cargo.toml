@@ -1,0 +1,14 @@
+[package]
+name = "lab5_shaders"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Solo muestra los pixeles que dibuja nuestro rasterizador en CPU.
+minifb = "0.27"
+# Solo guarda el framebuffer como PNG; no carga texturas.
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[profile.release]
+opt-level = 3
+
