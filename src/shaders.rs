@@ -13,6 +13,23 @@ pub enum Shader {
     Desert,
     Ring,
     Moon,
+    Collector,
+    Energy,
+}
+
+impl Shader {
+    pub fn is_sphere(self) -> bool {
+        matches!(
+            self,
+            Self::Star
+                | Self::Rocky
+                | Self::Gas
+                | Self::Ocean
+                | Self::Ice
+                | Self::Desert
+                | Self::Moon
+        )
+    }
 }
 
 // Un fragmento es un candidato a pixel de un triangulo rasterizado.
@@ -60,7 +77,30 @@ pub fn shade_with_light(
         Shader::Desert => Some(desert(fragment, layers, light)),
         Shader::Ring => ring(fragment, light),
         Shader::Moon => Some(moon(fragment, light)),
+        Shader::Collector => Some(collector(fragment)),
+        Shader::Energy => Some(energy(fragment)),
     }
+}
+
+fn collector(f: Fragment) -> Color {
+    let u = f.position.x / 0.46 + 0.5;
+    let v = f.position.y / 0.28 + 0.5;
+    let edge = u.min(1.0 - u).min(v.min(1.0 - v));
+    if edge < 0.055 {
+        return rgb(213, 163, 75) * (0.62 + f.normal.z.abs() * 0.38);
+    }
+    let cell_x = (u * 8.0).fract();
+    let cell_y = (v * 4.0).fract();
+    if cell_x < 0.08 || cell_y < 0.10 {
+        return rgb(70, 146, 185);
+    }
+    let sheen = (u * 9.0 + v * 5.0).sin() * 0.5 + 0.5;
+    mix(rgb(10, 24, 49), rgb(29, 82, 128), sheen) * (0.65 + 0.35 * f.normal.z.abs())
+}
+
+fn energy(f: Fragment) -> Color {
+    let pulse = (f.position.z * 95.0).sin() * 0.5 + 0.5;
+    mix(rgb(213, 102, 29), rgb(255, 228, 127), pulse)
 }
 
 // ASTER: estrella de plasma naranja. No depende de una luz externa.

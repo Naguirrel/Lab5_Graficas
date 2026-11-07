@@ -42,6 +42,7 @@ triangulos ni calcula los patrones del planeta.
 | `O` | Mostrar u ocultar las guias de las orbitas |
 | `R` | Mostrar u ocultar anillos del gigante gaseoso |
 | `M` | Mostrar u ocultar luna del planeta rocoso |
+| `D` | Mostrar u ocultar las placas del enjambre de Dyson alrededor del Sol |
 | `S` / `F12` | Guardar el framebuffer actual en `screenshots/captura_<vista>.png` |
 | Esc | Salir |
 
@@ -98,6 +99,14 @@ Los colores rojos, naranjas y amarillos representan regiones de distinta
 temperatura. La granulacion y los filamentos aportan detalle en varias escalas.
 La estrella emite su propio color: no usa el sombreado difuso de los planetas.
 El limbo es un poco mas oscuro para conservar la sensacion de volumen.
+
+Aster tiene un **enjambre de Dyson**: 36 placas colectoras independientes en tres
+bandas inclinadas que orbitan la estrella. Sus marcos dorados, celdas azules y
+conexiones de energia se dibujan por codigo, sin texturas. El buffer de profundidad
+oculta las placas que pasan detras del Sol. Los enlaces luminosos representan la
+captacion de energia de forma artistica; no se simula transferencia fisica de energia.
+Pulsa `D` o usa `--no-dyson` para comparar la estrella con y sin colectores.
+Las cuatro capas del shader estelar se conservan debajo de esta geometria adicional.
 
 ### Ignis — planeta rocoso y luna
 
@@ -168,7 +177,7 @@ cargo run --release -- --paused
 `--angle` se expresa en radianes y agrega una rotacion manual. `--time` se expresa
 en segundos de simulacion. `--body` selecciona la vista individual de ese cuerpo;
 `--view sistema` selecciona la general. Si se combinan, manda la ultima opcion de
-vista. `--no-rings`, `--no-moon` y `--no-orbits` permiten comparar los extras.
+vista. `--no-rings`, `--no-moon`, `--no-orbits` y `--no-dyson` permiten comparar los extras.
 `--help` muestra las opciones. `--export-all` usa el tiempo y la configuracion
 indicados para los individuales y el sistema; la comparativa usa la configuracion
 predeterminada. Los PNG son instantaneas estaticas, y la animacion se ve en la ventana.

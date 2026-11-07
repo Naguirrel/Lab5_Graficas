@@ -30,6 +30,7 @@ impl InputCallback for Keyboard {
             Some('5') => Key::Key5,
             Some('6') => Key::Key6,
             Some('o') => Key::O,
+            Some('d') => Key::D,
             Some('t') => Key::T,
             Some('+') | Some('=') => Key::Equal,
             Some('-') => Key::Minus,

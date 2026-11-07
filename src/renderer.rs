@@ -83,7 +83,7 @@ pub fn draw_mesh_lit(
             continue;
         }
         // Las esferas tienen normales radiales: solo dibujamos la cara visible.
-        if shader != Shader::Ring && a.normal.z + b.normal.z + c.normal.z < 0.0 {
+        if shader.is_sphere() && a.normal.z + b.normal.z + c.normal.z < 0.0 {
             continue;
         }
         let min_x = a.x.min(b.x).min(c.x).floor().max(0.0) as i32;
@@ -108,10 +108,10 @@ pub fn draw_mesh_lit(
                 // Baricentros: interpolamos datos de los 3 vertices en este pixel.
                 let local = a.position * w0 + b.position * w1 + c.position * w2;
                 let fragment = Fragment {
-                    position: if shader == Shader::Ring {
-                        local
-                    } else {
+                    position: if shader.is_sphere() {
                         local.normalized()
+                    } else {
+                        local
                     },
                     normal: (a.normal * w0 + b.normal * w1 + c.normal * w2).normalized(),
                 };

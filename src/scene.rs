@@ -173,6 +173,8 @@ pub struct Scene {
     pub sphere: Mesh,
     pub ring: Mesh,
     small_sphere: Mesh,
+    collector: Mesh,
+    energy_link: Mesh,
 }
 
 #[derive(Clone, Copy)]
@@ -184,6 +186,7 @@ pub struct Settings {
     pub moon: bool,
     pub time: f32,
     pub orbits: bool,
+    pub dyson: bool,
 }
 
 impl Default for Settings {
@@ -196,6 +199,7 @@ impl Default for Settings {
             moon: true,
             time: 0.0,
             orbits: true,
+            dyson: true,
         }
     }
 }
@@ -280,6 +284,8 @@ impl Scene {
             sphere: Mesh::sphere(72, 144),
             small_sphere: Mesh::sphere(28, 56),
             ring: Mesh::ring(256),
+            collector: Mesh::collector_panel(),
+            energy_link: Mesh::energy_link(),
         }
     }
 
@@ -287,6 +293,7 @@ impl Scene {
         fb.clear_space();
         let center = Vec3::new(fb.width as f32 * 0.5, fb.height as f32 * 0.5, 0.0);
         let fraction = match settings.body {
+            Body::Star if settings.dyson => 0.23,
             Body::Gas => 0.245,
             Body::Rocky if settings.moon => 0.27,
             _ => 0.32,
@@ -336,6 +343,9 @@ impl Scene {
             settings.layers,
             light,
         );
+        if settings.body == Body::Star && settings.dyson {
+            self.draw_dyson(fb, settings, center, radius);
+        }
         if settings.body == Body::Gas && settings.rings {
             let transform = Transform {
                 rotation_y: 0.0,
@@ -367,11 +377,57 @@ impl Scene {
         }
     }
 
+    fn draw_dyson(&self, fb: &mut Framebuffer, settings: Settings, center: Vec3, radius: f32) {
+        // Tres enjambres inclinados. Las placas orbitan como objetos separados
+        // y el z-buffer decide cuales quedan delante y detras del Sol.
+        for (band, (tilt_x, tilt_z)) in [(0.45, -0.35), (1.05, 0.65), (1.5, 1.9)]
+            .into_iter()
+            .enumerate()
+        {
+            for index in 0..12 {
+                let angle = TAU * index as f32 / 12.0
+                    + band as f32 * 0.31
+                    + settings.time * if band == 1 { -0.16 } else { 0.13 };
+                let orbit = Transform {
+                    center,
+                    scale: radius,
+                    rotation_y: angle,
+                    rotation_x: tilt_x,
+                    rotation_z: tilt_z,
+                };
+                let offset = orbit.orient(Vec3::new(0.0, 0.0, 1.57)) * radius;
+                let panel = Transform {
+                    center: center + screen_offset(offset),
+                    ..orbit
+                };
+                draw_mesh_lit(
+                    fb,
+                    &self.collector,
+                    panel,
+                    Shader::Collector,
+                    4,
+                    Vec3::new(0.0, 0.0, 1.0),
+                );
+                if index % 4 == band {
+                    draw_mesh_lit(
+                        fb,
+                        &self.energy_link,
+                        orbit,
+                        Shader::Energy,
+                        4,
+                        Vec3::new(0.0, 0.0, 1.0),
+                    );
+                }
+            }
+        }
+    }
+
     pub fn render_system(&self, fb: &mut Framebuffer, settings: Settings) {
         fb.clear_space();
         let sun = system_center(fb.width, fb.height);
         let scale = system_scale(fb.width, fb.height);
         let unit = fb.width.min(fb.height) as f32;
+        let sun_radius = unit * if settings.dyson { 0.057 } else { 0.067 };
         if settings.orbits {
             for orbit in ORBITS {
                 let mut previous = sun + screen_offset(orbit.position(0.0) * scale);
@@ -404,14 +460,14 @@ impl Scene {
             },
             Placement {
                 center: sun,
-                radius: unit * 0.067,
+                radius: sun_radius,
                 sun: None,
             },
             &self.small_sphere,
         );
         let mut labels = vec![Label {
             center: sun,
-            radius: unit * 0.067,
+            radius: sun_radius * if settings.dyson { 1.65 } else { 1.0 },
             text: "ASTER",
             color: 0xEEC17B,
         }];
@@ -512,7 +568,7 @@ impl Scene {
             fb,
             26,
             bottom + 19,
-            "ESPACIO PAUSA | +/- VELOCIDAD | T REINICIAR | O ORBITAS | L CAPAS | R ANILLOS | M LUNA | S CAPTURA",
+            "ESPACIO PAUSA | +/- VELOCIDAD | T REINICIAR | O ORBITAS | L CAPAS | R ANILLOS | M LUNA | D DYSON | S CAPTURA",
             1,
             0x8194AD,
         );
@@ -538,6 +594,7 @@ impl Scene {
                 0.0,
             );
             let fraction = match body {
+                Body::Star => 0.23,
                 Body::Gas => 0.22,
                 Body::Rocky => 0.20,
                 _ => 0.32,

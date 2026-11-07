@@ -183,3 +183,15 @@ En la vista general, cada cuerpo recibe la direccion desde su centro hacia el
 Sol para el calculo de luz. La estrella sigue usando su shader emisivo. En las
 vistas individuales se conserva una luz fija para comparar los detalles.
 
+## 10. Las placas de Dyson del Sol
+
+La estrella conserva sus cuatro capas de color. Alrededor se dibujan 36 placas
+como objetos independientes, con otras transformaciones y un shader de celdas
+azules y marcos dorados. Los enlaces de energia son cintas estrechas con un color
+emisivo calculado. Ninguno usa imagenes de textura.
+
+Los colectores necesitan coordenadas locales sin normalizar: son superficies
+planas, mientras que la esfera usa posiciones normalizadas. `Shader::is_sphere()`
+permite al rasterizador distinguirlos. Las placas se dibujan por ambos lados y
+el buffer de profundidad resuelve su posicion delante o detras del Sol.
+

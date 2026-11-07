@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             "--paused" => animate = false,
             "--no-orbits" => settings.orbits = false,
+            "--no-dyson" => settings.dyson = false,
             "--layers" => {
                 settings.layers = args.next().ok_or("falta numero de capas")?.parse()?;
                 if !(1..=4).contains(&settings.layers) {
@@ -86,13 +87,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     --time SEG / --speed 0.25..4 / --paused / --no-orbits\n\
                     --layers 1|2|3|4      Capas acumuladas del shader\n\
                     --angle RAD           Rotacion inicial\n\
-                    --no-rings / --no-moon\n\
+                    --no-rings / --no-moon / --no-dyson\n\
                     --output ruta.png     Guarda la vista inicial\n\
                     --export-only         Exporta sin abrir ventana\n\
                     --export-all          Exporta seis cuerpos, comparativa y sistema\n\
                     Ventana: 0 sistema, 1..6 cuerpo, L capas, Espacio pausa,\n\
                     +/- velocidad, T reiniciar, O orbitas, flechas girar/avanzar,\n\
-                    R anillos, M luna, S/F12 captura, Esc salir."
+                    R anillos, M luna, D placas Dyson, S/F12 captura, Esc salir."
                 );
                 return Ok(());
             }
@@ -140,7 +141,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "0: sistema | 1: estrella | 2: rocoso | 3: gaseoso | 4: oceanico | 5: helado | 6: desertico"
     );
     println!("Espacio: pausa | +/-: velocidad | T: reiniciar | O: orbitas | L: capas");
-    println!("Flechas: girar/avanzar | R: anillos | M: luna | S/F12: captura | Esc: salir");
+    println!(
+        "Flechas: girar/avanzar | R: anillos | M: luna | D: Dyson | S/F12: captura | Esc: salir"
+    );
     let mut window = Window::new("Lab 5 - Shaders", WIDTH, HEIGHT, WindowOptions::default())?;
     window.set_target_fps(30);
     let key_queue = KeyQueue::default();
@@ -175,6 +178,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         if pressed.contains(&Key::O) {
             settings.orbits = !settings.orbits;
+            dirty = true;
+        }
+        if pressed.contains(&Key::D) {
+            settings.dyson = !settings.dyson;
             dirty = true;
         }
         if pressed.contains(&Key::T) {

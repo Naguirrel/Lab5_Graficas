@@ -13,6 +13,41 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    // Placa colectora independiente. El shader dibuja sus celdas y marco.
+    pub fn collector_panel() -> Self {
+        let normal = Vec3::new(0.0, 0.0, 1.0);
+        Self {
+            vertices: [(-0.23, -0.14), (0.23, -0.14), (0.23, 0.14), (-0.23, 0.14)]
+                .into_iter()
+                .map(|(x, y)| Vertex {
+                    position: Vec3::new(x, y, 0.0),
+                    normal,
+                })
+                .collect(),
+            triangles: vec![[0, 1, 2], [0, 2, 3]],
+        }
+    }
+
+    // Cinta estrecha de energia entre la superficie estelar y un colector.
+    pub fn energy_link() -> Self {
+        let normal = Vec3::new(0.0, 1.0, 0.0);
+        Self {
+            vertices: [
+                (-0.012, 1.035),
+                (0.012, 1.035),
+                (0.012, 1.57),
+                (-0.012, 1.57),
+            ]
+            .into_iter()
+            .map(|(x, z)| Vertex {
+                position: Vec3::new(x, 0.0, z),
+                normal,
+            })
+            .collect(),
+            triangles: vec![[0, 1, 2], [0, 2, 3]],
+        }
+    }
+
     // Una sola geometria sirve para los tres cuerpos. Los shaders los distinguen.
     pub fn sphere(stacks: usize, slices: usize) -> Self {
         assert!(stacks >= 2 && slices >= 3);

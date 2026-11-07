@@ -113,6 +113,7 @@ fn every_layer_changes_each_body_and_full_render_is_not_flat() {
                 Settings {
                     body,
                     layers,
+                    dyson: false,
                     ..Settings::default()
                 },
             );
@@ -165,6 +166,45 @@ fn shaders_remain_finite_at_poles_and_multiple_rotations() {
                 assert!(color.x.is_finite() && color.y.is_finite() && color.z.is_finite());
                 let _ = pack(color);
             }
+        }
+    }
+}
+
+#[test]
+fn collector_panels_render_both_sides_and_obey_the_depth_buffer() {
+    let sphere = Mesh::sphere(24, 48);
+    let panel = Mesh::collector_panel();
+    let transform = Transform {
+        center: Vec3::new(50.0, 50.0, 0.0),
+        scale: 32.0,
+        rotation_x: 0.0,
+        rotation_y: 0.0,
+        rotation_z: 0.0,
+    };
+    let mut star = Framebuffer::new(100, 100);
+    draw_mesh(&mut star, &sphere, transform, Shader::Star, 4);
+    let center_pixel = star.pixels[50 * 100 + 50];
+    for angle in [0.0, std::f32::consts::PI] {
+        for depth in [-40.0, 40.0] {
+            let panel_transform = Transform {
+                center: Vec3::new(50.0, 50.0, depth),
+                rotation_y: angle,
+                ..transform
+            };
+            let mut images = Vec::new();
+            for panel_first in [true, false] {
+                let mut fb = Framebuffer::new(100, 100);
+                if panel_first {
+                    draw_mesh(&mut fb, &panel, panel_transform, Shader::Collector, 4);
+                }
+                draw_mesh(&mut fb, &sphere, transform, Shader::Star, 4);
+                if !panel_first {
+                    draw_mesh(&mut fb, &panel, panel_transform, Shader::Collector, 4);
+                }
+                images.push(fb.pixels);
+            }
+            assert_eq!(images[0], images[1]);
+            assert_eq!(images[0][50 * 100 + 50] == center_pixel, depth < 0.0);
         }
     }
 }
