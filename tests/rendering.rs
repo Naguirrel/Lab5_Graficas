@@ -52,6 +52,11 @@ fn noise_is_continuous_at_cell_boundaries_and_in_range() {
 
 #[test]
 fn rings_occlude_and_are_occluded_independent_of_draw_order() {
+    assert_ring_depth(Shader::Gas, Shader::Ring);
+    assert_ring_depth(Shader::Ice, Shader::IceRing);
+}
+
+fn assert_ring_depth(planet: Shader, ring_shader: Shader) {
     let sphere = Mesh::sphere(24, 48);
     let ring = Mesh::ring(96);
     let transform = Transform {
@@ -70,11 +75,11 @@ fn rings_occlude_and_are_occluded_independent_of_draw_order() {
         let mut fb = Framebuffer::new(160, 160);
         fb.clear_space();
         if reverse {
-            draw_mesh(&mut fb, &ring, ring_transform, Shader::Ring, 4);
+            draw_mesh(&mut fb, &ring, ring_transform, ring_shader, 4);
         }
-        draw_mesh(&mut fb, &sphere, transform, Shader::Gas, 4);
+        draw_mesh(&mut fb, &sphere, transform, planet, 4);
         if !reverse {
-            draw_mesh(&mut fb, &ring, ring_transform, Shader::Ring, 4);
+            draw_mesh(&mut fb, &ring, ring_transform, ring_shader, 4);
         }
         outputs.push(fb.pixels);
     }
@@ -85,10 +90,10 @@ fn rings_occlude_and_are_occluded_independent_of_draw_order() {
     background.clear_space();
     let mut only_sphere = Framebuffer::new(160, 160);
     only_sphere.clear_space();
-    draw_mesh(&mut only_sphere, &sphere, transform, Shader::Gas, 4);
+    draw_mesh(&mut only_sphere, &sphere, transform, planet, 4);
     let mut only_ring = Framebuffer::new(160, 160);
     only_ring.clear_space();
-    draw_mesh(&mut only_ring, &ring, ring_transform, Shader::Ring, 4);
+    draw_mesh(&mut only_ring, &ring, ring_transform, ring_shader, 4);
     let (mut ring_in_front, mut sphere_in_front) = (0, 0);
     for (i, &bg) in background.pixels.iter().enumerate() {
         let s = only_sphere.pixels[i];
@@ -134,6 +139,44 @@ fn every_layer_changes_each_body_and_full_render_is_not_flat() {
         let unique: std::collections::HashSet<_> = previous.into_iter().collect();
         assert!(unique.len() > 500, "{body:?}: imagen casi plana");
     }
+}
+
+#[test]
+fn snow_planet_ring_toggle_hides_the_rings_and_preserves_the_center() {
+    let scene = Scene::new();
+    let mut visible = Framebuffer::new(240, 180);
+    let mut hidden = Framebuffer::new(240, 180);
+    let settings = Settings {
+        body: Body::Ice,
+        ..Settings::default()
+    };
+    scene.render(&mut visible, settings);
+    scene.render(
+        &mut hidden,
+        Settings {
+            rings: false,
+            ..settings
+        },
+    );
+    assert_eq!(
+        visible.pixels[90 * 240 + 120],
+        hidden.pixels[90 * 240 + 120]
+    );
+    let radius = 180.0_f32 * 0.245;
+    let mut outside = 0;
+    for y in 0..180 {
+        for x in 0..240 {
+            let distance = ((x as f32 - 120.0).powi(2) + (y as f32 - 90.0).powi(2)).sqrt();
+            if distance > radius * 1.05 && visible.pixels[y * 240 + x] != hidden.pixels[y * 240 + x]
+            {
+                outside += 1;
+            }
+        }
+    }
+    assert!(
+        outside > 1000,
+        "los anillos de Nivis no aparecen fuera de su esfera"
+    );
 }
 
 #[test]

@@ -33,14 +33,14 @@ triangulos ni calcula los patrones del planeta.
 | --- | --- |
 | `0` | Vista del sistema completo |
 | `1` / `2` / `3` | Aster, estrella / Ignis, rocoso / Zephir, gaseoso |
-| `4` / `5` / `6` | Pelagia, oceanico / Nivis, helado / Coruscant, ciudad |
+| `4` / `5` / `6` | Pelagia, oceanico / Nivis, nieve con anillos / Coruscant, ciudad |
 | `L` | Cambiar capas acumuladas: 4 → 1 → 2 → 3 → 4 |
 | Flechas izquierda / derecha | Individual: girar el cuerpo. Sistema: retroceder o avanzar el tiempo |
 | Espacio | Pausar o reanudar toda la simulacion |
 | `+` / `-` | Aumentar / reducir velocidad entre x0.25 y x4; tambien sirve `=` para aumentar |
 | `T` | Reiniciar tiempo y rotacion manual |
 | `O` | Mostrar u ocultar las guias de las orbitas |
-| `R` | Mostrar u ocultar anillos del gigante gaseoso |
+| `R` | Mostrar u ocultar los anillos de Zephir y Nivis |
 | `M` | Mostrar u ocultar luna del planeta rocoso |
 | `D` | Mostrar u ocultar las placas del enjambre de Dyson alrededor del Sol |
 | `S` / `F12` | Guardar el framebuffer actual en `screenshots/captura_<vista>.png` |
@@ -88,7 +88,7 @@ comprobar visualmente lo que agrega cada una.
 | Ignis, rocoso | Basalto y minerales cobrizos | Grano mineral fino | Crateres con cuenca y borde | Fracturas emisivas turquesa |
 | Zephir, gaseoso | Bandas por latitud | Cinturones de composicion distinta | Nubes y filamentos finos | Tormenta oval con remolino |
 | Pelagia, oceanico | Oceanos y continentes | Costas, aguas someras y montanas | Casquetes polares | Sistemas de nubes |
-| Nivis, helado | Placas de hielo | Fisuras azules | Escarcha granular | Auroras polares |
+| Nivis, nieve | Manto blanco sobre hielo | Valles y cordilleras | Grano de nieve y surcos | Ventiscas y acumulaciones |
 | Coruscant, ciudad | Distritos metalicos | Manzanas, azoteas y callejones | Avenidas y circunvalaciones | Ventanas y trafico emisivos |
 
 ### Aster — estrella
@@ -136,13 +136,17 @@ Oceanos profundos, aguas turquesa junto a la costa, continentes verdes con zonas
 montanosas, hielo polar y nubes blancas. Un reflejo calculado sobre el agua
 complementa la iluminacion difusa. Todas las regiones se calculan con ruido 3D.
 
-### Nivis — planeta helado adicional
+### Nivis — planeta de nieve con anillos
 
 ![Nivis](screenshots/helado.png)
 
-Placas lavanda de distintos espesores, red de fisuras azules, escarcha y cortinas
-de aurora verde/violeta cerca de ambos polos. Las auroras afectan el color sobre
-la esfera y conservan brillo en la noche; no son una textura ni un halo exterior.
+Mundo cubierto de nieve blanca y hielo azul palido, con valles glaciares,
+cordilleras nevadas, nieve granular y frentes de ventisca. Sus cuatro capas de
+color se calculan sin texturas. La inclinacion del planeta coincide con el plano
+de sus **anillos plateados tipo Saturno**, que son una malla separada con divisiones
+y bandas finas. Su shader usa una paleta de particulas heladas distinta de Zephir.
+Pulsa `5` para verlo de cerca y `R` para comparar la vista sin anillos. Tambien
+aparece con sus anillos en el sistema completo y en la comparativa.
 
 ### Coruscant — planeta ciudad adicional
 
@@ -193,8 +197,8 @@ predeterminada. Los PNG son instantaneas estaticas, y la animacion se ve en la v
 | --- | --- |
 | Una estrella, un rocoso y un gaseoso | Aster, Ignis y Zephir, con vistas individuales |
 | Complejidad: cuatro capas que afectan el color | Cuatro por cuerpo, identificadas con `CAPA` en `src/shaders.rs` |
-| Creatividad | Seis disenos: plasma con enjambre Dyson, basalto, gas, oceanos, hielo y ciudad |
-| Anillos sin texturas ni materiales | Malla separada y shader radial con divisiones |
+| Creatividad | Seis disenos: plasma con enjambre Dyson, basalto, gas, oceanos, nieve con anillos y ciudad |
+| Anillos sin texturas ni materiales | Mallas separadas con shader radial y divisiones en Zephir y Nivis |
 | Luna | Objeto separado con transformacion y shader propios |
 | Capturas en README | Seis vistas individuales, comparativa y sistema completo |
 | Rotacion / traslacion opcionales | Rotacion de cuerpos y cinco orbitas alrededor del Sol, mas orbita lunar jerarquica |

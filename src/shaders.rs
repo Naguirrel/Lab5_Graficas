@@ -12,6 +12,7 @@ pub enum Shader {
     Ice,
     City,
     Ring,
+    IceRing,
     Moon,
     Collector,
     Energy,
@@ -75,7 +76,8 @@ pub fn shade_with_light(
         Shader::Ocean => Some(ocean(fragment, layers, light)),
         Shader::Ice => Some(ice(fragment, layers, light)),
         Shader::City => Some(city(fragment, layers, light)),
-        Shader::Ring => ring(fragment, light),
+        Shader::Ring => ring(fragment, light, false),
+        Shader::IceRing => ring(fragment, light, true),
         Shader::Moon => Some(moon(fragment, light)),
         Shader::Collector => Some(collector(fragment)),
         Shader::Energy => Some(energy(fragment)),
@@ -235,7 +237,7 @@ fn gas(f: Fragment, layers: u8, light: Vec3) -> Color {
     )
 }
 
-fn ring(f: Fragment, light: Vec3) -> Option<Color> {
+fn ring(f: Fragment, light: Vec3, icy: bool) -> Option<Color> {
     let p = f.position;
     let radius = (p.x * p.x + p.z * p.z).sqrt();
     // Una division real: el fragmento se descarta y deja ver el fondo/planeta.
@@ -245,7 +247,11 @@ fn ring(f: Fragment, light: Vec3) -> Option<Color> {
     let stripes = (radius * 235.0).sin() * 0.5 + 0.5;
     let broad = (radius * 27.0).sin() * 0.5 + 0.5;
     let grain = noise(p * 130.0);
-    let color = mix(rgb(77, 106, 135), rgb(221, 198, 161), broad);
+    let color = if icy {
+        mix(rgb(106, 139, 162), rgb(236, 243, 247), broad)
+    } else {
+        mix(rgb(77, 106, 135), rgb(221, 198, 161), broad)
+    };
     let color = color * (0.62 + stripes * 0.23 + grain * 0.15);
     // Sombra analitica del planeta sobre el anillo, sin mapa de sombras.
     let scene_p = p.rotate_x(0.55).rotate_z(-0.32);
@@ -302,40 +308,48 @@ fn ocean(f: Fragment, layers: u8, light: Vec3) -> Color {
     atmosphere(color, f.normal, rgb(62, 145, 232), 0.40)
 }
 
-// NIVIS: glaciares lavanda, grietas azules y auroras polares.
+// NIVIS: mundo de nieve blanca con valles glaciares y ventiscas.
 fn ice(f: Fragment, layers: u8, light: Vec3) -> Color {
     let p = f.position;
-    // CAPA 1: placas de hielo con distinto espesor.
-    let plates = fbm(p * 4.8 + Vec3::new(6.0, 3.0, 2.0), 4);
+    // CAPA 1: manto de nieve de distinto espesor sobre hielo azulado.
+    let snow = fbm(p * 4.0 + Vec3::new(6.0, 3.0, 2.0), 4);
     let mut color = mix(
-        rgb(69, 73, 142),
-        rgb(200, 212, 238),
-        smoothstep(0.25, 0.75, plates),
+        rgb(173, 202, 223),
+        rgb(249, 251, 253),
+        smoothstep(0.18, 0.70, snow),
     );
     if layers >= 2 {
-        // CAPA 2: red de fisuras profundas dentro de las placas.
-        let cracks = 1.0 - smoothstep(0.012, 0.055, (fbm(p * 11.0, 4) - 0.5).abs());
-        color = mix(color, rgb(23, 81, 139), cracks * 0.88);
+        // CAPA 2: valles glaciares y crestas de cordilleras cubiertas de nieve.
+        let terrain = fbm(p * 14.0, 4);
+        let valleys = 1.0 - smoothstep(0.015, 0.065, (terrain - 0.50).abs());
+        let peaks = smoothstep(0.55, 0.72, terrain);
+        color = mix(color, rgb(91, 140, 174), valleys * 0.38);
+        color = mix(color, rgb(252, 253, 255), peaks * 0.7);
     }
     if layers >= 3 {
-        // CAPA 3: escarcha y nieve granular acumulada en zonas frias.
-        let frost = fbm(p * 55.0, 3);
+        // CAPA 3: grano fino de nieve y surcos superficiales del viento.
+        let frost = fbm(p * 75.0, 3);
+        let drift = (p.y * 145.0 + snow * 31.0).sin() * 0.5 + 0.5;
+        color = color * (0.86 + frost * 0.18 + drift * 0.06);
+    }
+    if layers >= 4 {
+        // CAPA 4: frentes de ventisca y acumulaciones blancas sobre el terreno.
+        let blizzard = fbm(
+            Vec3::new(p.x * 7.0, p.y * 25.0, p.z * 7.0) + Vec3::new(3.0, 8.0, 5.0),
+            4,
+        );
         color = mix(
             color,
-            rgb(242, 244, 255),
-            smoothstep(0.38, 0.70, frost) * 0.58,
+            rgb(251, 254, 255),
+            smoothstep(0.40, 0.67, blizzard) * 0.72,
         );
     }
-    let mut color = lighting(color, f.normal, light);
-    if layers >= 4 {
-        // CAPA 4: cortinas de aurora, coloreadas cerca de los polos.
-        let longitude = p.x.atan2(p.z);
-        let ribbon = (longitude * 13.0 + p.y * 23.0 + plates * 7.0).sin() * 0.5 + 0.5;
-        let polar = smoothstep(0.48, 0.82, p.y.abs()) * (1.0 - smoothstep(0.93, 1.0, p.y.abs()));
-        let tint = mix(rgb(79, 237, 207), rgb(196, 111, 242), ribbon);
-        color = mix(color, tint, ribbon * polar * 0.78);
-    }
-    atmosphere(color, f.normal, rgb(161, 166, 248), 0.42)
+    atmosphere(
+        lighting(color, f.normal, light),
+        f.normal,
+        rgb(157, 205, 236),
+        0.30,
+    )
 }
 
 // CORUSCANT: ecumenopolis inspirada en Star Wars, con luces urbanas emisivas.

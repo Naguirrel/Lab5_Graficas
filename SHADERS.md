@@ -139,7 +139,7 @@ en el codigo y mostrarlo con los controles.
 ## 9. Rotacion y traslacion en el sistema completo
 
 Ahora hay **seis cuerpos principales**: una estrella y cinco planetas, mas una
-luna. Los tres planetas adicionales son Pelagia (oceanos), Nivis (hielo) y
+luna. Los tres planetas adicionales son Pelagia (oceanos), Nivis (nieve con anillos) y
 Coruscant (ciudad). Sus shaders tambien tienen cuatro efectos de color identificados.
 
 Al ejecutar `cargo run --release` veras el sistema animado. Pulsa `0` para volver
@@ -206,4 +206,17 @@ Los distritos y edificios se iluminan normalmente. Las avenidas y ventanas se
 mezclan despues de la iluminacion para conservar luz propia en la noche. La
 apariencia procede de cuatro capas de color dentro del shader, no de una textura
 ni de modelar cada edificio como geometria independiente.
+
+## 12. Nieve y anillos de Nivis
+
+El shader de Nivis combina un manto de nieve, sombras de valles glaciares,
+grano y surcos del viento, y frentes de ventisca. La paleta prioriza blancos y
+azules palidos. Todas estas variaciones ocurren antes de iluminar la superficie:
+la nieve refleja la luz y no emite luz propia.
+
+El anillo es otra malla, con el mismo tipo de geometria anular que Zephir pero
+un shader de colores plateados y azulados (`IceRing`). Conserva coordenadas
+locales sin normalizar para calcular la distancia radial y sus divisiones. El
+buffer de profundidad permite que parte del anillo pase delante del planeta y
+parte detras. `R` y `--no-rings` controlan los dos sistemas de anillos.
 

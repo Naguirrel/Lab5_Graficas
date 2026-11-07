@@ -53,7 +53,7 @@ impl Body {
             Self::Rocky => "IGNIS - Planeta rocoso",
             Self::Gas => "ZEPHIR - Gigante gaseoso",
             Self::Ocean => "PELAGIA - Planeta oceanico",
-            Self::Ice => "NIVIS - Planeta helado",
+            Self::Ice => "NIVIS - Planeta de nieve",
             Self::City => "CORUSCANT - Planeta ciudad",
         }
     }
@@ -76,6 +76,10 @@ impl Body {
             Self::Ice => 0.19,
             Self::City => 0.23,
         }
+    }
+
+    pub fn has_rings(self) -> bool {
+        matches!(self, Self::Gas | Self::Ice)
     }
 }
 
@@ -294,7 +298,7 @@ impl Scene {
         let center = Vec3::new(fb.width as f32 * 0.5, fb.height as f32 * 0.5, 0.0);
         let fraction = match settings.body {
             Body::Star if settings.dyson => 0.23,
-            Body::Gas => 0.245,
+            Body::Gas | Body::Ice => 0.245,
             Body::Rocky if settings.moon => 0.27,
             _ => 0.32,
         };
@@ -327,8 +331,12 @@ impl Scene {
             center,
             scale: radius,
             rotation_y: settings.angle + settings.time * settings.body.spin_rate(),
-            rotation_x: 0.0,
-            rotation_z: if settings.body == Body::Gas {
+            rotation_x: if settings.body == Body::Ice {
+                0.55
+            } else {
+                0.0
+            },
+            rotation_z: if settings.body.has_rings() {
                 -0.32
             } else {
                 0.12
@@ -346,14 +354,19 @@ impl Scene {
         if settings.body == Body::Star && settings.dyson {
             self.draw_dyson(fb, settings, center, radius);
         }
-        if settings.body == Body::Gas && settings.rings {
+        if settings.body.has_rings() && settings.rings {
             let transform = Transform {
                 rotation_y: 0.0,
                 rotation_x: 0.55,
                 rotation_z: -0.32,
                 ..transform
             };
-            draw_mesh_lit(fb, &self.ring, transform, Shader::Ring, 4, light);
+            let shader = if settings.body == Body::Ice {
+                Shader::IceRing
+            } else {
+                Shader::Ring
+            };
+            draw_mesh_lit(fb, &self.ring, transform, shader, 4, light);
         }
         if settings.body == Body::Rocky && settings.moon {
             // Transformacion jerarquica: centro lunar = centro ACTUAL del planeta
@@ -495,7 +508,7 @@ impl Scene {
                 },
                 &self.small_sphere,
             );
-            let envelope = if orbit.body == Body::Gas && settings.rings {
+            let envelope = if orbit.body.has_rings() && settings.rings {
                 radius * 2.03
             } else {
                 radius
@@ -595,7 +608,7 @@ impl Scene {
             );
             let fraction = match body {
                 Body::Star => 0.23,
-                Body::Gas => 0.22,
+                Body::Gas | Body::Ice => 0.22,
                 Body::Rocky => 0.20,
                 _ => 0.32,
             };
