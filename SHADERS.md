@@ -139,8 +139,8 @@ en el codigo y mostrarlo con los controles.
 ## 9. Rotacion y traslacion en el sistema completo
 
 Ahora hay **seis cuerpos principales**: una estrella y cinco planetas, mas una
-luna. Los tres planetas adicionales son Pelagia (oceanos), Nivis (hielo) y Duna
-(desierto). Sus shaders tambien tienen cuatro efectos de color identificados.
+luna. Los tres planetas adicionales son Pelagia (oceanos), Nivis (hielo) y
+Coruscant (ciudad). Sus shaders tambien tienen cuatro efectos de color identificados.
 
 Al ejecutar `cargo run --release` veras el sistema animado. Pulsa `0` para volver
 a esa vista desde cualquier cuerpo; `1` a `6` abren los individuales. Espacio
@@ -194,4 +194,16 @@ Los colectores necesitan coordenadas locales sin normalizar: son superficies
 planas, mientras que la esfera usa posiciones normalizadas. `Shader::is_sphere()`
 permite al rasterizador distinguirlos. Las placas se dibujan por ambos lados y
 el buffer de profundidad resuelve su posicion delante o detras del Sol.
+
+## 11. Una ciudad que cubre un planeta
+
+Coruscant usa la posicion local de la esfera para obtener longitud y latitud.
+Sobre ellas, distintas rejillas generan distritos, edificios y ventanas. Las
+avenidas se calculan por distancia a las lineas de una rejilla; las circunvalaciones
+usan distancias a centros urbanos sobre la esfera.
+
+Los distritos y edificios se iluminan normalmente. Las avenidas y ventanas se
+mezclan despues de la iluminacion para conservar luz propia en la noche. La
+apariencia procede de cuatro capas de color dentro del shader, no de una textura
+ni de modelar cada edificio como geometria independiente.
 

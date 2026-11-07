@@ -15,7 +15,7 @@ pub enum Body {
     Gas,
     Ocean,
     Ice,
-    Desert,
+    City,
 }
 
 impl Body {
@@ -25,7 +25,7 @@ impl Body {
         Self::Gas,
         Self::Ocean,
         Self::Ice,
-        Self::Desert,
+        Self::City,
     ];
     pub fn slug(self) -> &'static str {
         match self {
@@ -34,7 +34,7 @@ impl Body {
             Self::Gas => "gaseoso",
             Self::Ocean => "oceanico",
             Self::Ice => "helado",
-            Self::Desert => "desertico",
+            Self::City => "coruscant",
         }
     }
     pub fn short_name(self) -> &'static str {
@@ -44,7 +44,7 @@ impl Body {
             Self::Gas => "ZEPHIR",
             Self::Ocean => "PELAGIA",
             Self::Ice => "NIVIS",
-            Self::Desert => "DUNA",
+            Self::City => "CORUSCANT",
         }
     }
     pub fn name(self) -> &'static str {
@@ -54,7 +54,7 @@ impl Body {
             Self::Gas => "ZEPHIR - Gigante gaseoso",
             Self::Ocean => "PELAGIA - Planeta oceanico",
             Self::Ice => "NIVIS - Planeta helado",
-            Self::Desert => "DUNA - Planeta desertico",
+            Self::City => "CORUSCANT - Planeta ciudad",
         }
     }
     pub fn shader(self) -> Shader {
@@ -64,7 +64,7 @@ impl Body {
             Self::Gas => Shader::Gas,
             Self::Ocean => Shader::Ocean,
             Self::Ice => Shader::Ice,
-            Self::Desert => Shader::Desert,
+            Self::City => Shader::City,
         }
     }
     pub fn spin_rate(self) -> f32 {
@@ -74,7 +74,7 @@ impl Body {
             Self::Gas => 0.46,
             Self::Ocean => 0.27,
             Self::Ice => 0.19,
-            Self::Desert => 0.23,
+            Self::City => 0.23,
         }
     }
 }
@@ -104,7 +104,7 @@ pub struct Orbit {
 
 pub const ORBITS: [Orbit; 5] = [
     Orbit {
-        body: Body::Desert,
+        body: Body::City,
         radius: 0.20,
         period: 18.0,
         phase: -2.5,
@@ -474,7 +474,7 @@ impl Scene {
         for orbit in ORBITS {
             let center = sun + screen_offset(orbit.position(settings.time) * scale);
             let size = match orbit.body {
-                Body::Desert => 0.022,
+                Body::City => 0.029,
                 Body::Rocky => 0.029,
                 Body::Ocean => 0.034,
                 Body::Gas => 0.039,
@@ -560,7 +560,7 @@ impl Scene {
             fb,
             26,
             bottom,
-            "0 SISTEMA | 1 ASTER | 2 IGNIS | 3 ZEPHIR | 4 PELAGIA | 5 NIVIS | 6 DUNA",
+            "0 SISTEMA | 1 ASTER | 2 IGNIS | 3 ZEPHIR | 4 PELAGIA | 5 NIVIS | 6 CORUSCANT",
             1,
             0xC2CDDC,
         );

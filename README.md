@@ -7,7 +7,7 @@ se reutiliza para los seis cuerpos principales; anillos y luna se dibujan como o
 
 La fila superior muestra los tres cuerpos obligatorios: **Aster**, **Ignis** y
 **Zephir**. La inferior muestra los tres planetas adicionales del bono:
-**Pelagia**, **Nivis** y **Duna**. Cada uno tiene un shader de cuatro capas.
+**Pelagia**, **Nivis** y **Coruscant**. Cada uno tiene un shader de cuatro capas.
 
 ![Comparativa de los seis cuerpos renderizados](screenshots/comparativa.png)
 
@@ -33,7 +33,7 @@ triangulos ni calcula los patrones del planeta.
 | --- | --- |
 | `0` | Vista del sistema completo |
 | `1` / `2` / `3` | Aster, estrella / Ignis, rocoso / Zephir, gaseoso |
-| `4` / `5` / `6` | Pelagia, oceanico / Nivis, helado / Duna, desertico |
+| `4` / `5` / `6` | Pelagia, oceanico / Nivis, helado / Coruscant, ciudad |
 | `L` | Cambiar capas acumuladas: 4 → 1 → 2 → 3 → 4 |
 | Flechas izquierda / derecha | Individual: girar el cuerpo. Sistema: retroceder o avanzar el tiempo |
 | Espacio | Pausar o reanudar toda la simulacion |
@@ -62,7 +62,7 @@ sin representar escalas astronomicas reales ni resolver fuerzas gravitacionales.
 
 | Cuerpo | Traslacion a velocidad x1 |
 | --- | --- |
-| Duna | Una vuelta cada 18 segundos |
+| Coruscant | Una vuelta cada 18 segundos |
 | Ignis | Una vuelta cada 28 segundos |
 | Pelagia | Una vuelta cada 40 segundos |
 | Zephir | Una vuelta cada 56 segundos |
@@ -89,7 +89,7 @@ comprobar visualmente lo que agrega cada una.
 | Zephir, gaseoso | Bandas por latitud | Cinturones de composicion distinta | Nubes y filamentos finos | Tormenta oval con remolino |
 | Pelagia, oceanico | Oceanos y continentes | Costas, aguas someras y montanas | Casquetes polares | Sistemas de nubes |
 | Nivis, helado | Placas de hielo | Fisuras azules | Escarcha granular | Auroras polares |
-| Duna, desertico | Arena y mesetas | Crestas de dunas | Cuencas salinas | Tormentas de polvo |
+| Coruscant, ciudad | Distritos metalicos | Manzanas, azoteas y callejones | Avenidas y circunvalaciones | Ventanas y trafico emisivos |
 
 ### Aster — estrella
 
@@ -144,13 +144,17 @@ Placas lavanda de distintos espesores, red de fisuras azules, escarcha y cortina
 de aurora verde/violeta cerca de ambos polos. Las auroras afectan el color sobre
 la esfera y conservan brillo en la noche; no son una textura ni un halo exterior.
 
-### Duna — planeta desertico adicional
+### Coruscant — planeta ciudad adicional
 
-![Duna](screenshots/desertico.png)
+![Planeta ciudad inspirado en Coruscant](screenshots/coruscant.png)
 
-Arena rojiza con mesetas de terracota, crestas onduladas de dunas doradas, salares
-palidos y polvo alargado por el viento. Es un diseno distinto del rocoso Ignis:
-no usa sus crateres ni sus fracturas emisivas.
+Ecumenopolis inspirada en Coruscant de Star Wars: la superficie esta cubierta
+por distritos metalicos y bloques arquitectonicos. Avenidas doradas y centros
+urbanos circulares conectan las zonas densas; miles de ventanas amarillas y
+algunas azules mantienen su brillo en el hemisferio nocturno. Las cuatro capas
+se calculan con rejillas, distancias y ruido, sin usar imagenes de la pelicula.
+Reemplaza al anterior Duna y conserva su orbita. Se abre con `6` o `--body coruscant`;
+`--body desertico` sigue funcionando como alias para configuraciones anteriores.
 
 ## Exportar las imagenes
 
@@ -169,6 +173,7 @@ cargo run --release -- --body gaseoso --export-only --output screenshots/gaseoso
 cargo run --release -- --body rocoso --layers 1 --no-moon --export-only --output screenshots/rocoso_capa1.png
 cargo run --release -- --body estrella --angle 0.5
 cargo run --release -- --body oceanico
+cargo run --release -- --body coruscant
 cargo run --release -- --view sistema --speed 2
 cargo run --release -- --view sistema --time 12 --export-only --output screenshots/sistema_t12.png
 cargo run --release -- --paused
@@ -188,12 +193,12 @@ predeterminada. Los PNG son instantaneas estaticas, y la animacion se ve en la v
 | --- | --- |
 | Una estrella, un rocoso y un gaseoso | Aster, Ignis y Zephir, con vistas individuales |
 | Complejidad: cuatro capas que afectan el color | Cuatro por cuerpo, identificadas con `CAPA` en `src/shaders.rs` |
-| Creatividad | Seis disenos: plasma, basalto, gas, oceanos, hielo y desierto |
+| Creatividad | Seis disenos: plasma con enjambre Dyson, basalto, gas, oceanos, hielo y ciudad |
 | Anillos sin texturas ni materiales | Malla separada y shader radial con divisiones |
 | Luna | Objeto separado con transformacion y shader propios |
 | Capturas en README | Seis vistas individuales, comparativa y sistema completo |
 | Rotacion / traslacion opcionales | Rotacion de cuerpos y cinco orbitas alrededor del Sol, mas orbita lunar jerarquica |
-| Tres planetas adicionales: bono de hasta 30 puntos | Pelagia, Nivis y Duna, cada uno con shader propio de cuatro capas |
+| Tres planetas adicionales: bono de hasta 30 puntos | Pelagia, Nivis y Coruscant, cada uno con shader propio de cuatro capas |
 
 La creatividad y la aceptacion de las capas se evaluan segun el criterio del
 docente; esta tabla documenta lo implementado, no garantiza una nota.

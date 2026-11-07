@@ -27,10 +27,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Some("gaseoso") => Body::Gas,
                     Some("oceanico") => Body::Ocean,
                     Some("helado") => Body::Ice,
-                    Some("desertico") => Body::Desert,
+                    Some("coruscant") | Some("desertico") => Body::City,
                     _ => {
                         return Err(
-                            "usa --body estrella|rocoso|gaseoso|oceanico|helado|desertico".into(),
+                            "usa --body estrella|rocoso|gaseoso|oceanico|helado|coruscant".into(),
                         );
                     }
                 };
@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     "Lab 5 - Shaders por software\n\
                     cargo run --release -- [opciones]\n\
                     --view sistema|individual (predeterminado: sistema animado)\n\
-                    --body estrella|rocoso|gaseoso|oceanico|helado|desertico\n\
+                    --body estrella|rocoso|gaseoso|oceanico|helado|coruscant\n\
                     --time SEG / --speed 0.25..4 / --paused / --no-orbits\n\
                     --layers 1|2|3|4      Capas acumuladas del shader\n\
                     --angle RAD           Rotacion inicial\n\
@@ -138,7 +138,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     println!(
-        "0: sistema | 1: estrella | 2: rocoso | 3: gaseoso | 4: oceanico | 5: helado | 6: desertico"
+        "0: sistema | 1: estrella | 2: rocoso | 3: gaseoso | 4: oceanico | 5: helado | 6: Coruscant"
     );
     println!("Espacio: pausa | +/-: velocidad | T: reiniciar | O: orbitas | L: capas");
     println!(
@@ -164,7 +164,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             (Key::Key3, Body::Gas),
             (Key::Key4, Body::Ocean),
             (Key::Key5, Body::Ice),
-            (Key::Key6, Body::Desert),
+            (Key::Key6, Body::City),
         ] {
             if pressed.contains(&key) {
                 settings.body = body;

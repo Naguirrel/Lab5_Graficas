@@ -10,7 +10,7 @@ pub enum Shader {
     Gas,
     Ocean,
     Ice,
-    Desert,
+    City,
     Ring,
     Moon,
     Collector,
@@ -26,7 +26,7 @@ impl Shader {
                 | Self::Gas
                 | Self::Ocean
                 | Self::Ice
-                | Self::Desert
+                | Self::City
                 | Self::Moon
         )
     }
@@ -74,7 +74,7 @@ pub fn shade_with_light(
         Shader::Gas => Some(gas(fragment, layers, light)),
         Shader::Ocean => Some(ocean(fragment, layers, light)),
         Shader::Ice => Some(ice(fragment, layers, light)),
-        Shader::Desert => Some(desert(fragment, layers, light)),
+        Shader::City => Some(city(fragment, layers, light)),
         Shader::Ring => ring(fragment, light),
         Shader::Moon => Some(moon(fragment, light)),
         Shader::Collector => Some(collector(fragment)),
@@ -338,46 +338,60 @@ fn ice(f: Fragment, layers: u8, light: Vec3) -> Color {
     atmosphere(color, f.normal, rgb(161, 166, 248), 0.42)
 }
 
-// DUNA: arena rojiza, dunas doradas, salares y polvo arrastrado por el viento.
-fn desert(f: Fragment, layers: u8, light: Vec3) -> Color {
+// CORUSCANT: ecumenopolis inspirada en Star Wars, con luces urbanas emisivas.
+fn city(f: Fragment, layers: u8, light: Vec3) -> Color {
     let p = f.position;
-    let terrain = fbm(p * 4.0 + Vec3::new(2.0, 7.0, 11.0), 4);
-    // CAPA 1: distribucion de arena y mesetas de terracota.
-    let mut color = mix(
-        rgb(130, 43, 32),
-        rgb(225, 152, 78),
-        smoothstep(0.25, 0.73, terrain),
-    );
+    let u = p.x.atan2(p.z) / std::f32::consts::TAU + 0.5;
+    let v = p.y.clamp(-1.0, 1.0).asin() / std::f32::consts::PI + 0.5;
+    let district = noise(Vec3::new((u * 72.0).floor(), (v * 36.0).floor(), 13.0));
+    // CAPA 1: distritos metalicos de distinta densidad, cubriendo todo el planeta.
+    let mut color = mix(rgb(28, 34, 44), rgb(127, 114, 96), district);
     if layers >= 2 {
-        // CAPA 2: crestas de dunas curvadas por variaciones del terreno.
-        let dunes = (p.y * 135.0 + p.x * 23.0 + terrain * 28.0).sin() * 0.5 + 0.5;
-        color = mix(color * 0.77, mix(color, rgb(255, 204, 125), 0.5), dunes);
-    }
-    if layers >= 3 {
-        // CAPA 3: cuencas salinas claras con limites irregulares.
-        let basin = fbm(p * 6.2 + Vec3::new(11.0, 2.0, 7.0), 4);
+        // CAPA 2: manzanas, azoteas y callejones a escala arquitectonica.
+        let block_x = (u * 360.0).fract();
+        let block_y = (v * 180.0).fract();
+        let gutter = block_x.min(1.0 - block_x).min(block_y.min(1.0 - block_y));
+        let height = noise(Vec3::new((u * 360.0).floor(), (v * 180.0).floor(), 7.0));
         color = mix(
-            color,
-            rgb(236, 213, 184),
-            smoothstep(0.53, 0.65, basin) * 0.9,
+            color * 0.48,
+            mix(color, rgb(163, 159, 142), height * 0.48),
+            smoothstep(0.04, 0.18, gutter),
         );
+    }
+    let mut color = lighting(color, f.normal, light);
+    if layers >= 3 {
+        // CAPA 3: avenidas luminosas y circunvalaciones de los centros urbanos.
+        let avenue = |t: f32| {
+            let t = t.fract();
+            1.0 - smoothstep(0.012, 0.035, t.min(1.0 - t))
+        };
+        let mut roads = avenue(u * 24.0).max(avenue(v * 12.0)) * 0.64;
+        for center in [
+            Vec3::new(-0.35, 0.22, 0.91),
+            Vec3::new(0.50, -0.4, 0.76),
+            Vec3::new(0.65, 0.55, -0.52),
+        ] {
+            let distance = (p - center.normalized()).length();
+            for radius in [0.11, 0.17, 0.24] {
+                roads = roads.max(1.0 - smoothstep(0.003, 0.009, (distance - radius).abs()));
+            }
+        }
+        color = mix(color, rgb(229, 153, 68), roads);
     }
     if layers >= 4 {
-        // CAPA 4: tormentas de polvo en filamentos alargados.
-        let dust = fbm(
-            Vec3::new(p.x * 8.0, p.y * 29.0, p.z * 8.0) + Vec3::new(4.0, 0.0, 3.0),
-            4,
-        );
-        color = mix(
-            color,
-            rgb(245, 179, 112),
-            smoothstep(0.48, 0.70, dust) * 0.66,
-        );
+        // CAPA 4: ventanas de edificios y corredores de trafico iluminados.
+        let x = (u * 480.0).fract();
+        let y = (v * 240.0).fract();
+        let occupancy = noise(Vec3::new((u * 480.0).floor(), (v * 240.0).floor(), 23.0));
+        let windows = smoothstep(0.44, 0.68, occupancy)
+            * smoothstep(0.10, 0.28, x.min(1.0 - x))
+            * smoothstep(0.10, 0.28, y.min(1.0 - y));
+        let glow = if occupancy > 0.90 {
+            rgb(159, 220, 255)
+        } else {
+            rgb(255, 220, 145)
+        };
+        color = mix(color, glow, windows * 0.92);
     }
-    atmosphere(
-        lighting(color, f.normal, light),
-        f.normal,
-        rgb(211, 117, 68),
-        0.24,
-    )
+    atmosphere(color, f.normal, rgb(176, 142, 94), 0.16)
 }

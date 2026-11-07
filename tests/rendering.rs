@@ -145,7 +145,7 @@ fn shaders_remain_finite_at_poles_and_multiple_rotations() {
         Shader::Gas,
         Shader::Ocean,
         Shader::Ice,
-        Shader::Desert,
+        Shader::City,
         Shader::Moon,
     ] {
         for p in [
@@ -281,11 +281,38 @@ fn external_light_changes_the_day_side_but_does_not_dim_the_star() {
     };
     let front = Vec3::new(0.0, 0.0, 1.0);
     let back = Vec3::new(0.0, 0.0, -1.0);
-    let day = shade_with_light(Shader::Desert, fragment, 4, front).unwrap();
-    let night = shade_with_light(Shader::Desert, fragment, 4, back).unwrap();
+    let day = shade_with_light(Shader::Ocean, fragment, 1, front).unwrap();
+    let night = shade_with_light(Shader::Ocean, fragment, 1, back).unwrap();
     assert!(day.length() > night.length() * 3.0);
     assert_eq!(
         pack(shade_with_light(Shader::Star, fragment, 4, front).unwrap()),
         pack(shade_with_light(Shader::Star, fragment, 4, back).unwrap())
     );
+}
+
+#[test]
+fn city_windows_and_avenues_remain_bright_on_the_night_side() {
+    use lab5_shaders::shaders::{Fragment, shade_with_light};
+    let (mut buildings, mut illuminated) = (0.0, 0.0);
+    for row in -8..=8 {
+        for col in -8..=8 {
+            let (x, y) = (col as f32 / 10.0, row as f32 / 10.0);
+            if x * x + y * y >= 0.90 {
+                continue;
+            }
+            let p = Vec3::new(x, y, (1.0 - x * x - y * y).sqrt());
+            let fragment = Fragment {
+                position: p,
+                normal: p,
+            };
+            let light = Vec3::new(0.0, 0.0, -1.0);
+            buildings += shade_with_light(Shader::City, fragment, 2, light)
+                .unwrap()
+                .length();
+            illuminated += shade_with_light(Shader::City, fragment, 4, light)
+                .unwrap()
+                .length();
+        }
+    }
+    assert!(illuminated > buildings * 1.5);
 }
